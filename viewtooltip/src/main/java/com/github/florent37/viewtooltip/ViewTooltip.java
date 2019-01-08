@@ -14,13 +14,14 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.StringRes;
-import androidx.core.widget.NestedScrollView;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
+import android.support.annotation.ColorInt;
+import android.support.annotation.StringRes;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.Fragment;
+import android.support.v4.widget.NestedScrollView;
 
 import android.text.Html;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -170,17 +171,24 @@ public class ViewTooltip {
                 @Override
                 public void run() {
                     final Rect rect = new Rect();
-                    final Point offset = new Point();
-                    view.getGlobalVisibleRect(rect, offset);
+                    view.getGlobalVisibleRect(rect);
+
+                    final Rect rootGlobalRect = new Rect();
+                    final Point rootGlobalOffset = new Point();
+                    rootView.getGlobalVisibleRect(rootGlobalRect, rootGlobalOffset);
 
                     int[] location = new int[2];
                     view.getLocationOnScreen(location);
                     rect.left = location[0];
-                    if (offset != null) {
-                        rect.top -= offset.y;
+                    if (rootGlobalOffset != null) {
+                        rect.top -= rootGlobalOffset.y;
+                        rect.bottom -= rootGlobalOffset.y;
+                        rect.left -= rootGlobalOffset.x;
+                        rect.right -= rootGlobalOffset.x;
                     }
 
-                    decorView.addView(tooltip_view, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    int width = (tooltip_view.getMaxWidth() != null) ? tooltip_view.getMaxWidth() : ViewGroup.LayoutParams.WRAP_CONTENT;
+                    decorView.addView(tooltip_view, width, ViewGroup.LayoutParams.WRAP_CONTENT);
 
                     tooltip_view.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                         @Override
@@ -271,8 +279,23 @@ public class ViewTooltip {
         return this;
     }
 
-    public ViewTooltip setTextGravity (int textGravity) {
+    public ViewTooltip setTextGravity(int textGravity) {
         this.tooltip_view.setTextGravity(textGravity);
+        return this;
+    }
+
+    public ViewTooltip setMaxLines(int maxLines) {
+        this.tooltip_view.setMaxLines(maxLines);
+        return this;
+    }
+
+    public ViewTooltip setEllipsize(TextUtils.TruncateAt where) {
+        this.tooltip_view.setEllipsize(where);
+        return this;
+    }
+
+    public ViewTooltip setMaxWidth(int maxWidth) {
+        this.tooltip_view.setMaxWidth(maxWidth);
         return this;
     }
 
@@ -284,6 +307,11 @@ public class ViewTooltip {
     public ViewTooltip autoHide(boolean autoHide, long duration) {
         this.tooltip_view.setAutoHide(autoHide);
         this.tooltip_view.setDuration(duration);
+        return this;
+    }
+
+    public ViewTooltip setOnClickListener(View.OnClickListener l) {
+        this.tooltip_view.setOnClickListener(l);
         return this;
     }
 
@@ -368,6 +396,7 @@ public class ViewTooltip {
         private boolean clickToHide;
         private boolean autoHide = true;
         private long duration = 4000;
+        private Integer maxWidth;
 
         private ListenerDisplay listenerDisplay;
 
@@ -478,6 +507,29 @@ public class ViewTooltip {
             postInvalidate();
         }
 
+        public void setMaxLines(int maxlines) {
+            if (childView instanceof TextView) {
+                ((TextView) this.childView).setMaxLines(maxlines);
+            }
+            postInvalidate();
+        }
+
+        public void setEllipsize(TextUtils.TruncateAt where) {
+            if (childView instanceof TextView) {
+                ((TextView) this.childView).setEllipsize(where);
+            }
+            postInvalidate();
+        }
+
+        public void setMaxWidth(int maxWidth) {
+            this.maxWidth = maxWidth;
+            postInvalidate();
+        }
+
+        public Integer getMaxWidth() {
+            return this.maxWidth;
+        }
+
         public int getArrowHeight() {
             return arrowHeight;
         }
@@ -537,6 +589,10 @@ public class ViewTooltip {
 
         public void setClickToHide(boolean clickToHide) {
             this.clickToHide = clickToHide;
+        }
+
+        public void setOnClickListener(OnClickListener l) {
+            super.setOnClickListener(l);
         }
 
         public void setCorner(int corner) {

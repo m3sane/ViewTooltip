@@ -20,7 +20,7 @@ allprojects {
 ext{
     COMPILE_SDK=28
     TARGET_SDK=28
-    MIN_SDK = 14
+    MIN_SDK = 19
     sourceCompatibilityVersion = JavaVersion.VERSION_1_8
     targetCompatibilityVersion = JavaVersion.VERSION_1_8
     supportVersion = "28.0.0"
